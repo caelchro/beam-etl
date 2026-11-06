@@ -36,7 +36,7 @@ public class ResumenETL {
         return totalRechazados;
     }
 
-    @Override 
+    @Override
     public String toString() {
         return "ResumenETL [totalLeidos=" + totalLeidos + ", totalValidos=" + totalValidos + ", totalRechazados="
                 + totalRechazados + "]";

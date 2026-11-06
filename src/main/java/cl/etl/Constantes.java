@@ -5,7 +5,7 @@ public  class Constantes {
     public static final String ESTADO_RECHAZADO = "RECHAZADO";
     public static final String ESTADO_PENDIENTE = "PENDIENTE";
 
-    
+
     public static final String MR_CANTIDAD_COLUMNAS = "Cantidad de columnas inválida";
     public static final String MR_ID_INVALIDO = "Identificador inválido";
     public static final String MR_DUPLICADO = "ID duplicado";

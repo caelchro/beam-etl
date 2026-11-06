@@ -91,7 +91,7 @@ public class PipelineClientes3 {
                 //                                 System.out.println("RECHAZADO: " + cliente);
                 //                         }
                 //                 }));
-                
+
                 pipeline.run().waitUntilFinish();
         }
 }
