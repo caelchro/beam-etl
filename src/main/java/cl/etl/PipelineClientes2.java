@@ -21,8 +21,18 @@ import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TupleTagList;
 
-public class PipelineClientes2 {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import cl.etl.model.Cliente;
+import cl.etl.model.ClienteRechazado;
+
+
+/************************************
+ * lectura archivo csv, parseo, validacion y deteccion de duplicados, todo junto
+ * ************************************/
+public class PipelineClientes2 {
+        private static final Logger log = LoggerFactory.getLogger(PipelineClientes2.class);
     public static String input = "/datos/clientes.csv";
 
     static final TupleTag<Cliente> CLIENTES_VALIDOS = new TupleTag<Cliente>() {
@@ -134,7 +144,7 @@ public class PipelineClientes2 {
                 new DoFn<Cliente, Void>() {
                     @ProcessElement
                     public void procesar(@Element Cliente cliente) {
-                        System.out.println("VÁLIDO: " + cliente);
+                        log.info("VÁLIDO: " + cliente);
                     }
                 }));
 
@@ -142,7 +152,7 @@ public class PipelineClientes2 {
                 new DoFn<ClienteRechazado, Void>() {
                     @ProcessElement
                     public void procesar(@Element ClienteRechazado cliente) {
-                        System.out.println("RECHAZADO: " + cliente);
+                        log.info("RECHAZADO: " + cliente);
                     }
                 }));
         pipeline.run().waitUntilFinish();

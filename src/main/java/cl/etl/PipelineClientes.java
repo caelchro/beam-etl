@@ -2,86 +2,112 @@
 package cl.etl;
 
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.VarLongCoder;
 import org.apache.beam.sdk.io.TextIO;
-import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.metrics.MetricQueryResults;
+import org.apache.beam.sdk.metrics.MetricResult;
+import org.apache.beam.sdk.metrics.MetricsFilter;
 import org.apache.beam.sdk.transforms.Filter;
-import org.apache.beam.sdk.transforms.Flatten;
 import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.WithKeys;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
-import org.apache.beam.sdk.values.PCollectionList;
-import org.apache.beam.sdk.values.PCollectionTuple;
-import org.apache.beam.sdk.values.TupleTagList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import cl.etl.transform.DetectarDuplicados;
-import cl.etl.transform.ParsearCliente;
-import cl.etl.transform.ValidarCliente;
+import cl.etl.model.ResumenETL;
+import cl.etl.model.StagingClientes;
+import cl.etl.persistencia.PersisteStaging;
+import cl.etl.transform.DetectarDuplicadosStaging;
+import cl.etl.transform.ParsearClienteStaging;
+import cl.etl.transform.ValidarClienteStaging;
 
+/************************************
+ * persistencia staging, upsert en DB
+ ************************************/
 public class PipelineClientes {
+        private static final Logger log = LoggerFactory.getLogger(PipelineClientes.class);
 
-    public static String input = "/datos/clientes.csv";
-    public static void main(String[] args) {
+        // TODO cambiar a properties
+        public static String input = "/datos/clientes.csv";
 
-        Pipeline pipeline = Pipeline.create();
-        ParsearCliente parsearCliente = new ParsearCliente();
+        public ResumenETL procesar(long procesoId) {
+                try {
+                        Pipeline pipeline = Pipeline.create();
+                        ParsearClienteStaging parsearCliente = new ParsearClienteStaging();
 
-        PCollection<Cliente> clientesParseados = pipeline
-                .apply("ReadFromCSV", TextIO.read().from(input))
-                .apply("ExcluirEncabezado",
-                        Filter.by(linea -> !linea.equals("id,nombre,email")))
-                .apply("parsearClientes", ParDo.of(parsearCliente)).setCoder(new ClienteCoder());
+                        PCollection<StagingClientes> clientesParseados = pipeline
+                                        .apply("ReadFromCSV", TextIO.read().from(input))
+                                        .apply("ExcluirEncabezado",
+                                                        Filter.by(linea -> !linea.equals("id,nombre,email")))
+                                        .apply("parsearClientes", ParDo.of(parsearCliente))
+                                        .setCoder(new StagingCoder());
 
-        PCollection<KV<Long, Cliente>> clientesPorId = clientesParseados
-                .apply("AsignarIdComoClave",
-                        WithKeys.of(Cliente::getId))
-                .setCoder(
-                        KvCoder.of(
-                                VarLongCoder.of(),
-                                new ClienteCoder()));
+                        PCollection<KV<Long, StagingClientes>> clientesPorId = clientesParseados
+                                        .apply("AsignarIdComoClave",
+                                                        WithKeys.of(StagingClientes::getIdCliente))
+                                        .setCoder(KvCoder.of(
+                                                        VarLongCoder.of(),
+                                                        new StagingCoder()));
+                        PCollection<KV<Long, Iterable<StagingClientes>>> gruposPorId = clientesPorId.apply(
+                                        "AgruparPorId",
+                                        GroupByKey.create());
+                        PCollection<StagingClientes> revisionDuplicados = gruposPorId.apply(
+                                        "DetectarDuplicados",
+                                        ParDo.of(new DetectarDuplicadosStaging()));
 
-        PCollection<KV<Long, Iterable<Cliente>>> gruposPorId = clientesPorId.apply(
-                "AgruparPorId",
-                GroupByKey.create());
-        PCollectionTuple resultadoDuplicados = gruposPorId.apply(
-                "DetectarDuplicados",
-                ParDo.of(new DetectarDuplicados())
-                        .withOutputTags(
-                                DetectarDuplicados.CLIENTES_VALIDOS,
-                                TupleTagList.of(DetectarDuplicados.CLIENTES_RECHAZADOS)));
-        PCollection<Cliente> sinDuplicados = resultadoDuplicados.get(DetectarDuplicados.CLIENTES_VALIDOS);
+                        PCollection<StagingClientes> revisionValidaciones = revisionDuplicados.apply(
+                                        "ValidarClientes",
+                                        ParDo.of(new ValidarClienteStaging()));
 
-        PCollectionTuple resultado = sinDuplicados.apply(
-                "ValidarClientes",
-                ParDo.of(new ValidarCliente())
-                        .withOutputTags(
-                                ValidarCliente.CLIENTES_VALIDOS,
-                                TupleTagList.of(ValidarCliente.CLIENTES_RECHAZADOS)));
+                        revisionValidaciones.apply(
+                                        "MostrarStaging",
+                                        ParDo.of(new MostrarStaging()));
+                        revisionValidaciones.apply("PersistenciaValidos",
 
-        PCollection<Cliente> validos = resultado.get(ValidarCliente.CLIENTES_VALIDOS);
+                                        ParDo.of(new PersisteStaging(procesoId)));
 
-        PCollection<ClienteRechazado> rechazados = PCollectionList.of(
-                resultadoDuplicados.get(DetectarDuplicados.CLIENTES_RECHAZADOS)).and(
-                        resultado.get(ValidarCliente.CLIENTES_RECHAZADOS))
-                .apply("UnirRechazados", Flatten.pCollections());
-        validos.apply("MostrarValidos", ParDo.of(
-                new DoFn<Cliente, Void>() {
-                    @ProcessElement
-                    public void procesar(@Element Cliente cliente) {
-                        System.out.println("VÁLIDO: " + cliente);
-                    }
-                }));
+                        // Count.globally()
+                        PipelineResult resultado = pipeline.run();
+                        resultado.waitUntilFinish();
 
-        rechazados.apply("MostrarRechazados", ParDo.of(
-                new DoFn<ClienteRechazado, Void>() {
-                    @ProcessElement
-                    public void procesar(@Element ClienteRechazado cliente) {
-                        System.out.println("RECHAZADO: " + cliente);
-                    }
-                }));
-        pipeline.run().waitUntilFinish();
-    }
+                        MetricQueryResults metricas = resultado.metrics().queryMetrics(
+                                        MetricsFilter.builder().build());
+
+                        // Recuperar los valores de los contadores
+                        int leidos = 0;
+                        int validos = 0;
+                        int rechazados = 0;
+
+                        for (MetricResult<Long> m : metricas.getCounters()) {
+                                log.info(
+                                                "Métrica: {} | committed: {} | attempted: {}",
+                                                m.getName().getName(),
+                                                m.getCommitted(),
+                                                m.getAttempted());
+                                switch (m.getName().getName()) {
+                                        case "leidos":
+                                                leidos = m.getCommitted().intValue();
+                                                break;
+                                        case "validos":
+                                                validos = m.getCommitted().intValue();
+                                                break;
+                                        case "rechazados":
+                                                rechazados += m.getCommitted().intValue();
+                                                break;
+                                }
+                        }
+
+                        ResumenETL resumen = new ResumenETL(leidos, validos, rechazados);
+
+                        log.info("Resumen ETL: {}", resumen);
+                        return resumen;
+                } catch (Exception e) {
+                        log.error("Error ejecutando pipeline ETL {}", procesoId, e);
+                        throw new RuntimeException("Falló la ejecución ETL", e);
+                }
+        }
 }

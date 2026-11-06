@@ -2,7 +2,7 @@ package cl.etl.transform;
 
 import org.apache.beam.sdk.transforms.DoFn;
 
-import cl.etl.Cliente;
+import cl.etl.model.Cliente;
 
 public class ParsearCliente extends DoFn<String, Cliente> {
     @ProcessElement

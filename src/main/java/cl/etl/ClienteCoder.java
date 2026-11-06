@@ -1,12 +1,13 @@
 package cl.etl;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 import org.apache.beam.sdk.coders.AtomicCoder;
-import org.apache.beam.sdk.coders.VarLongCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
+import org.apache.beam.sdk.coders.VarLongCoder;
+
+import cl.etl.model.Cliente;
 
 public class ClienteCoder extends AtomicCoder<Cliente> {
 

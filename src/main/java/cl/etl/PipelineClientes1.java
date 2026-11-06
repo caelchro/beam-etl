@@ -6,6 +6,9 @@ import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.values.TypeDescriptors;
 
+/************************************
+ * version inicial, datos hardcodeados
+ * ************************************/
 public class PipelineClientes1 {
 
     public static void main(String[] args) {

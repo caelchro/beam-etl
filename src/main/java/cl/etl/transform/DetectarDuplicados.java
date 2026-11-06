@@ -7,8 +7,8 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.TupleTag;
 
-import cl.etl.Cliente;
-import cl.etl.ClienteRechazado;
+import cl.etl.model.Cliente;
+import cl.etl.model.ClienteRechazado;
 
 public class DetectarDuplicados extends DoFn<KV<Long, Iterable<Cliente>>, Cliente> {
     public static final TupleTag<Cliente> CLIENTES_VALIDOS = new TupleTag<Cliente>() {

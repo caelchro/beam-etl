@@ -1,0 +1,48 @@
+
+proceso:
+  iniciar: |
+    INSERT INTO etl_proceso DEFAULT VALUES
+    RETURNING proceso_id
+
+  actualizarContadores: |
+    UPDATE etl_proceso
+    SET total_leidos = ?,
+        total_validos = ?,
+        total_rechazados = ?
+    WHERE proceso_id = ?
+
+  finalizar: |
+    UPDATE etl_proceso
+    SET fecha_termino = CURRENT_TIMESTAMP,
+        estado = ?,
+        mensaje_error = ?
+    WHERE proceso_id = ?
+
+staging:
+  insertar: |
+    INSERT INTO staging_clientes (
+        proceso_id, linea_original,
+        cliente_id, nombre, email, estado, motivo_rechazo
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+
+cliente:
+  getAll: |
+    SELECT cliente_id, nombre, email
+    FROM clientes
+
+  insertar: |
+    INSERT INTO clientes (cliente_id, nombre, email)
+    VALUES (?, ?, ?)
+
+rechazado:
+  insertar: |
+    INSERT INTO clientes_rechazados (
+        proceso_id, linea_original, motivo
+    )
+    VALUES (?, ?, ?)
+
+  getAll: |
+    SELECT *
+    FROM clientes_rechazados
+    ORDER BY rechazo_id

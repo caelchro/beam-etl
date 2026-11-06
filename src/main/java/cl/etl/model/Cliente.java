@@ -1,4 +1,4 @@
-package cl.etl;
+package cl.etl.model;
 
 public class Cliente {
     private final long id;

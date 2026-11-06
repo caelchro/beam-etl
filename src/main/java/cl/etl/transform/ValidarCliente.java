@@ -3,8 +3,8 @@ package cl.etl.transform;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.TupleTag;
 
-import cl.etl.Cliente;
-import cl.etl.ClienteRechazado;
+import cl.etl.model.Cliente;
+import cl.etl.model.ClienteRechazado;
 
 public class ValidarCliente extends DoFn<Cliente, Cliente> {
 

@@ -1,5 +1,5 @@
 
-package cl.etl;
+package cl.etl.model;
 
 import java.util.Objects;
 
@@ -9,14 +9,30 @@ import org.apache.beam.sdk.schemas.annotations.DefaultSchema;
 @DefaultSchema(JavaFieldSchema.class)
 public class ClienteRechazado {
 
-    public String linea;
-    public String motivo;
+    private String linea;
+    private String motivo;
 
     public ClienteRechazado() {
     }
 
     public ClienteRechazado(String linea, String motivo) {
         this.linea = linea;
+        this.motivo = motivo;
+    }
+
+    public String getLinea() {
+        return linea;
+    }
+
+    public void setLinea(String linea) {
+        this.linea = linea;
+    }
+
+    public String getMotivo() {
+        return motivo;
+    }
+
+    public void setMotivo(String motivo) {
         this.motivo = motivo;
     }
 
