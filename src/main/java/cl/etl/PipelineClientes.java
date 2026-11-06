@@ -18,6 +18,7 @@ import org.apache.beam.sdk.values.PCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cl.etl.coder.StagingCoder;
 import cl.etl.model.ResumenETL;
 import cl.etl.model.StagingClientes;
 import cl.etl.persistencia.PersisteStaging;

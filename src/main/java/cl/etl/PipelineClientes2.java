@@ -24,6 +24,7 @@ import org.apache.beam.sdk.values.TupleTagList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cl.etl.coder.ClienteCoder;
 import cl.etl.model.Cliente;
 import cl.etl.model.ClienteRechazado;
 

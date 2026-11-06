@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cl.etl.model.ResumenETL;
+import cl.etl.persistencia.ConsultasSQL;
 
 /**
  * Hello world!

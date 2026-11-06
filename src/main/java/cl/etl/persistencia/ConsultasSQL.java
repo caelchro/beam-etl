@@ -1,5 +1,5 @@
 
-package cl.etl;
+package cl.etl.persistencia;
 
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;

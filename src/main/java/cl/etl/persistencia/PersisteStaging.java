@@ -9,8 +9,6 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cl.etl.ConexionBD;
-import cl.etl.ConsultasSQL;
 import cl.etl.model.StagingClientes;
 
 public class PersisteStaging extends DoFn<StagingClientes, StagingClientes> {

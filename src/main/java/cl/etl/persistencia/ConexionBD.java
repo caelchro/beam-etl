@@ -1,5 +1,5 @@
 
-package cl.etl;
+package cl.etl.persistencia;
 
 import java.io.IOException;
 import java.io.InputStream;
