@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cl.etl.persistencia.ConexionBD;
 import cl.etl.persistencia.ConsultasSQL;
 
 public class ProcesoETL {
@@ -17,7 +16,7 @@ public class ProcesoETL {
     public long iniciarProceso() throws SQLException {
         String sql = ConsultasSQL.obtener("proceso.iniciar");
 
-        try (Connection conn = ConexionBD.obtenerConexion();
+        try (Connection conn = Propiedades.obtenerConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 ResultSet rs = stmt.executeQuery()) {
 
@@ -41,7 +40,7 @@ public class ProcesoETL {
 
         String sql = ConsultasSQL.obtener("proceso.actualizarContadores");
 
-        try (Connection conn = ConexionBD.obtenerConexion();
+        try (Connection conn = Propiedades.obtenerConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, totalLeidos);
@@ -75,7 +74,7 @@ public class ProcesoETL {
 
         String sql = ConsultasSQL.obtener("proceso.finalizar");
 
-        try (Connection conn = ConexionBD.obtenerConexion();
+        try (Connection conn = Propiedades.obtenerConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, estado);

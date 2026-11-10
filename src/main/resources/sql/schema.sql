@@ -21,7 +21,7 @@ CREATE TABLE staging_clientes (
     estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE'
         CHECK (estado IN ('PENDIENTE', 'VALIDO', 'RECHAZADO')),
     motivo_rechazo TEXT,
-    fecha_carga TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_carga TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE clientes (

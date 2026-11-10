@@ -1,5 +1,5 @@
 
-package cl.etl.persistencia;
+package cl.etl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,18 +8,18 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class ConexionBD {
+public class Propiedades {
 
     public static final Properties PROPERTIES = cargarPropiedades();
 
-    private ConexionBD() {
+    private Propiedades() {
         // Clase utilitaria: no se instancia.
     }
 
     private static Properties cargarPropiedades() {
         Properties properties = new Properties();
 
-        try (InputStream input = ConexionBD.class
+        try (InputStream input = Propiedades.class
                 .getClassLoader()
                 .getResourceAsStream("application.properties")) {
 

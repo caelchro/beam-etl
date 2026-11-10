@@ -34,9 +34,11 @@ public class ParsearClienteStaging extends DoFn<String, StagingClientes> {
             stagingCliente.setIdCliente(id);
         } catch (NumberFormatException e) {
             ResumenETL.RECHAZADOS.inc();
-            stagingCliente.setId(-1);
+            stagingCliente.setIdCliente(-1L);
             stagingCliente.rechazar(Constantes.ESTADO_RECHAZADO, Constantes.MR_ID_INVALIDO);
             log.info("rechazo por id invalido:" + campos[0].trim());
+            salida.output(stagingCliente);
+            return;
         }
 
         String nombre = campos[1].trim();

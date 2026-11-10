@@ -66,6 +66,11 @@ public class StagingClientes implements Serializable {
         this.linea = linea;
     }
 
+    public void rechazar(String estadoRechazado, String motivoRechazo) {
+        this.estado = estadoRechazado;
+        this.motivoRechazo = motivoRechazo;
+    }
+
     public StagingClientes copiar() {
         StagingClientes copia = new StagingClientes();
 
@@ -152,11 +157,6 @@ public class StagingClientes implements Serializable {
 
     public void setFechaCarga(Date fechaCarga) {
         this.fechaCarga = fechaCarga;
-    }
-
-    public void rechazar(String estadoRechazado, String motivoRechazo) {
-        this.estado = estadoRechazado;
-        this.motivoRechazo = motivoRechazo;
     }
 
     @Override

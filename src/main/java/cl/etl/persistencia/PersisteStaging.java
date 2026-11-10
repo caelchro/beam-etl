@@ -9,15 +9,16 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cl.etl.Propiedades;
 import cl.etl.model.StagingClientes;
 
 public class PersisteStaging extends DoFn<StagingClientes, StagingClientes> {
 
     private static final Logger log = LoggerFactory.getLogger(PersisteStaging.class);
-private long procesados;
     private transient Connection conn;
     private transient PreparedStatement stmt;
     private long procesoId;
+    private long registrosBundle;
 
     public PersisteStaging(long procesoId) {
         this.procesoId = procesoId;
@@ -26,13 +27,19 @@ private long procesados;
     @Setup
     public void setup() throws SQLException {
         conn = DriverManager.getConnection(
-            ConexionBD.PROPERTIES.getProperty("db.url"),
-            ConexionBD.PROPERTIES.getProperty("db.username"),
+            Propiedades.PROPERTIES.getProperty("db.url"),
+            Propiedades.PROPERTIES.getProperty("db.username"),
             System.getenv("DB_PASSWORD")
         );
 
         stmt = conn.prepareStatement(ConsultasSQL.obtener("staging.insertar"));
     }
+
+    @StartBundle
+    public void startBundle() {
+        registrosBundle = 0;
+    }
+
 
     @ProcessElement
     public void procesar(@Element StagingClientes cliente) throws SQLException {
@@ -44,14 +51,20 @@ private long procesados;
         stmt.setString(6, cliente.getEstado());
         stmt.setString(7, cliente.getMotivoRechazo());
         stmt.addBatch();
-    procesados++;
+    registrosBundle++;
+    }
+
+    @FinishBundle
+    public void finishBundle() throws SQLException {
+        if (stmt != null) {
+            log.info("Bundle finalizado. Registros: " + registrosBundle);
+            stmt.executeBatch();
+        }
     }
 
     @Teardown
     public void teardown() throws SQLException {
-        log.info("procesados:" + procesados);
         if (stmt != null) {
-            stmt.executeBatch();
             stmt.close();
         }
 

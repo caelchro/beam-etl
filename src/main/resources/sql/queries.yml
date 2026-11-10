@@ -17,6 +17,9 @@ proceso:
         estado = ?,
         mensaje_error = ?
     WHERE proceso_id = ?
+  borrarProceso: |
+    DELETE FROM etl_proceso
+    WHERE proceso_id = ?
 
 staging:
   insertar: |
@@ -25,6 +28,14 @@ staging:
         cliente_id, nombre, email, estado, motivo_rechazo
     )
     VALUES (?, ?, ?, ?, ?, ?, ?)
+  getAllByProceso: |
+    SELECT proceso_id, linea_original,
+        cliente_id, nombre, email, estado, motivo_rechazo
+    FROM staging_clientes
+    WHERE proceso_id = ?
+  borrarByProceso: |
+    DELETE FROM staging_clientes
+    WHERE proceso_id = ?
 
 cliente:
   getAll: |
