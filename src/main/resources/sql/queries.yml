@@ -46,6 +46,24 @@ cliente:
     INSERT INTO clientes (cliente_id, nombre, email)
     VALUES (?, ?, ?)
 
+  upsertDesdeStaging:
+    INSERT INTO clientes (cliente_id, nombre, email)
+      SELECT DISTINCT ON (cliente_id)
+            cliente_id,
+            nombre,
+            email
+      FROM staging_clientes
+      WHERE proceso_id = ?
+        AND estado = 'VALIDO'
+      ORDER BY cliente_id, staging_id
+      ON CONFLICT (cliente_id)
+      DO UPDATE SET
+          nombre = EXCLUDED.nombre,
+          email = EXCLUDED.email
+      WHERE (clientes.nombre, clientes.email)
+            IS DISTINCT FROM
+            (EXCLUDED.nombre, EXCLUDED.email)
+
 rechazado:
   insertar: |
     INSERT INTO clientes_rechazados (
@@ -57,3 +75,17 @@ rechazado:
     SELECT *
     FROM clientes_rechazados
     ORDER BY rechazo_id
+
+  insertarDesdeStaging:
+    INSERT INTO clientes_rechazados (
+        proceso_id,
+        linea_original,
+        motivo
+    )
+    SELECT
+        proceso_id,
+        linea_original,
+        motivo_rechazo
+    FROM staging_clientes
+    WHERE proceso_id = ?
+      AND estado = 'RECHAZADO'

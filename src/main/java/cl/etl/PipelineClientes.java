@@ -70,7 +70,6 @@ public class PipelineClientes {
                 revisionValidaciones.apply("PersistenciaStaging",
                                 ParDo.of(new PersisteStaging(procesoId)));
 
-                // Count.globally()
                 PipelineResult resultado = pipeline.run();
                 resultado.waitUntilFinish();
 

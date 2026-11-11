@@ -61,6 +61,39 @@ public class ProcesoETL {
         }
     }
 
+    public void procesarStaging(long procesoId) throws SQLException {
+
+        String sqlUpsert = ConsultasSQL.obtener("cliente.upsertDesdeStaging");
+        String sqlRechazados = ConsultasSQL.obtener("rechazado.insertarDesdeStaging");
+
+        try (Connection conn = Propiedades.obtenerConexion()) {
+
+            conn.setAutoCommit(false);
+
+            try {
+                // 1. UPSERT clientes válidos
+                try (PreparedStatement stmt = conn.prepareStatement(sqlUpsert)) {
+                    stmt.setLong(1, procesoId);
+                    int filas = stmt.executeUpdate();
+                    log.info("Clientes insertados/actualizados: {}", filas);
+                }
+
+                // 2. Traspasar clientes rechazados
+                try (PreparedStatement stmt = conn.prepareStatement(sqlRechazados)) {
+                    stmt.setLong(1, procesoId);
+                    int filas = stmt.executeUpdate();
+                    log.info("Clientes rechazados registrados: {}", filas);
+                }
+
+                conn.commit();
+
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        }
+    }
+
     public void finalizarProceso(
             long procesoId,
             String estado,

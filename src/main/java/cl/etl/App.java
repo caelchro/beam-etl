@@ -23,6 +23,8 @@ public class App {
             PipelineClientes pipelineClientes = new PipelineClientes();
 
             ResumenETL resumen = pipelineClientes.procesar(procesoId);
+            // Procesamiento SQL de staging
+            procesoETL.procesarStaging(procesoId);
             procesoETL.actualizarContadores(
                     procesoId,
                     resumen.getTotalLeidos(),

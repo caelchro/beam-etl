@@ -36,7 +36,7 @@ CREATE TABLE clientes_rechazados (
     proceso_id BIGINT NOT NULL REFERENCES etl_proceso(proceso_id),
     linea_original TEXT NOT NULL,
     motivo TEXT NOT NULL,
-    fecha_rechazo TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_rechazo TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_staging_clientes_proceso
